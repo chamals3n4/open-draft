@@ -2,6 +2,16 @@
 
 **OpenDraft** is an open-source, lightweight blog writing platform designed for developers and content creators who want a simple yet powerful solution for managing their content.
 
+- [Why OpenDraft?](#why-opendraft)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Database Schema](#database-schema)
+- [API Access](#api-access)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [Support](#support)
+
 ### Why OpenDraft?
 
 When I was building [elephantjourney.info](https://elephantjourney.info) with my friend, we needed a blog writing platform for this. We wanted something simple, just for creating and managing content, so I decided to build a fully custom one. Later, I did the same thing for a few other projects as well. After that, I realized it would be better to make this open source, so anyone can easily set up their own content writing platform and access the content through a REST API for their public website.
