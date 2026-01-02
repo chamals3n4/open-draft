@@ -2,6 +2,8 @@
 
 **OpenDraft** is an open-source, lightweight blog writing platform designed for developers and content creators who want a simple yet powerful solution for managing their content.
 
+![OpenDraft UI](./public/mockup.png)
+
 - [Why OpenDraft?](#why-opendraft)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
