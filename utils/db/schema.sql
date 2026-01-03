@@ -41,6 +41,9 @@ CREATE TABLE profiles (
   role user_role NOT NULL DEFAULT 'contributor',
   status user_status NOT NULL DEFAULT 'active',
 
+  -- Protection flag for critical users (initial/foundational users)
+  is_protected BOOLEAN DEFAULT false NOT NULL,
+
   -- User preferences (theme, editor settings, notifications)
   preferences JSONB DEFAULT '{}',
 

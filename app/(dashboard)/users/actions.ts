@@ -108,6 +108,7 @@ export async function updateUser(
   const displayName = formData.get("displayName") as string;
   const role = formData.get("role") as UserRole;
   const status = formData.get("status") as UserStatus;
+  const isProtected = formData.get("is_protected") === "on";
 
   if (!userId || !displayName || !role || !status) {
     return { error: "Required fields missing", success: false };
@@ -121,6 +122,7 @@ export async function updateUser(
       display_name: displayName,
       role,
       status,
+      is_protected: isProtected,
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
@@ -145,6 +147,47 @@ export async function deleteUser(
     await requireRole(["admin"]);
   } catch {
     return { error: "Only admins can delete users", success: false };
+  }
+
+  const supabase = await createClient();
+
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser();
+
+  if (!currentUser) {
+    return { error: "Authentication required", success: false };
+  }
+
+  if (currentUser.id === userId) {
+    return { error: "You cannot delete your own account", success: false };
+  }
+
+  const { data: targetUser } = await supabase
+    .from("profiles")
+    .select("is_protected, role")
+    .eq("id", userId)
+    .single();
+
+  if (targetUser?.is_protected) {
+    return {
+      error: "This user is protected and cannot be deleted",
+      success: false,
+    };
+  }
+
+  if (targetUser?.role === "admin") {
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "admin");
+
+    if (count !== null && count <= 1) {
+      return {
+        error: "Cannot delete the last admin user",
+        success: false,
+      };
+    }
   }
 
   let adminClient;

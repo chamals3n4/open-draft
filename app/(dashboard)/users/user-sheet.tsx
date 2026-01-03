@@ -9,6 +9,8 @@ import {
   FieldDescription,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -48,6 +50,7 @@ interface User {
   avatar_url: string | null;
   role: string;
   status: string;
+  is_protected?: boolean;
 }
 
 interface UserSheetProps {
@@ -89,6 +92,7 @@ export function UserSheet({
   const [selectedStatus, setSelectedStatus] = useState(
     user?.status || "active"
   );
+  const [isProtected, setIsProtected] = useState(user?.is_protected || false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isOpen = open !== undefined ? open : internalOpen;
@@ -98,15 +102,20 @@ export function UserSheet({
     if (user) {
       setSelectedRole(user.role);
       setSelectedStatus(user.status);
+      setIsProtected(user.is_protected || false);
       setShowDeleteConfirm(false);
     } else {
       setSelectedRole("contributor");
       setSelectedStatus("active");
+      setIsProtected(false);
     }
   }, [user]);
 
   useEffect(() => {
     if (state.success) {
+      toast.success(
+        isEdit ? "User updated successfully" : "User created successfully"
+      );
       const timer = setTimeout(() => {
         setIsOpen(false);
         if (!isEdit) {
@@ -114,8 +123,10 @@ export function UserSheet({
         }
       }, 1000);
       return () => clearTimeout(timer);
+    } else if (state.error) {
+      toast.error(state.error);
     }
-  }, [state.success, setIsOpen, isEdit]);
+  }, [state.success, state.error, setIsOpen, isEdit]);
 
   const handleRoleChange = (value: string | null) => {
     if (value) setSelectedRole(value);
@@ -136,7 +147,11 @@ export function UserSheet({
     startDeleteTransition(async () => {
       const result = await deleteUser(user.id);
       if (result.success) {
+        toast.success("User deleted successfully");
         setIsOpen(false);
+      } else if (result.error) {
+        toast.error(result.error);
+        setShowDeleteConfirm(false);
       }
     });
   };
@@ -266,23 +281,48 @@ export function UserSheet({
           </Field>
 
           {isEdit && (
-            <Field>
-              <FieldLabel htmlFor="status">Status</FieldLabel>
-              <Select
-                name="status"
-                value={selectedStatus}
-                onValueChange={handleStatusChange}
-                disabled={isPending || state.success}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+            <>
+              <Field>
+                <FieldLabel htmlFor="status">Status</FieldLabel>
+                <Select
+                  name="status"
+                  value={selectedStatus}
+                  onValueChange={handleStatusChange}
+                  disabled={isPending || state.success}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is_protected"
+                    name="is_protected"
+                    checked={isProtected}
+                    onCheckedChange={(checked) => setIsProtected(!!checked)}
+                    disabled={isPending || state.success}
+                  />
+                  <div>
+                    <FieldLabel
+                      htmlFor="is_protected"
+                      className="cursor-pointer"
+                    >
+                      🛡️ Protected User
+                    </FieldLabel>
+                    <FieldDescription className="text-xs">
+                      Protected users cannot be deleted
+                    </FieldDescription>
+                  </div>
+                </div>
+              </Field>
+            </>
           )}
 
           <Button
@@ -303,7 +343,11 @@ export function UserSheet({
 
       {isEdit && (
         <div className="px-4 pb-4 mt-auto border-t pt-4">
-          {!showDeleteConfirm ? (
+          {user?.is_protected ? (
+            <div className="text-sm text-muted-foreground text-center p-3 bg-muted rounded-lg">
+              🛡️ This user is protected and cannot be deleted
+            </div>
+          ) : !showDeleteConfirm ? (
             <Button
               variant="outline"
               className="w-full text-destructive hover:text-destructive"
