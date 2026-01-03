@@ -51,6 +51,11 @@ export function LoginForm({
                   placeholder="m@example.com"
                   required
                   disabled={isPending}
+                  defaultValue={
+                    process.env.NEXT_PUBLIC_DEMO_MODE === "true"
+                      ? process.env.NEXT_PUBLIC_DEMO_EMAIL
+                      : ""
+                  }
                 />
               </Field>
               <Field>
@@ -61,6 +66,11 @@ export function LoginForm({
                   type="password"
                   required
                   disabled={isPending}
+                  defaultValue={
+                    process.env.NEXT_PUBLIC_DEMO_MODE === "true"
+                      ? process.env.NEXT_PUBLIC_DEMO_PASSWORD
+                      : ""
+                  }
                 />
               </Field>
               <Field>
